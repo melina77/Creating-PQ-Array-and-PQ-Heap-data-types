@@ -1,0 +1,226 @@
+
+Warmup
+-------
+Q1. How do the values of the member variables of `allBalls[0]` change from iteration to iteration? Specifically, what happens to the values of `_id`, `_x`, and `_y`?
+A1. The _x position of allBalls[0] seems to decrease by 5 each time continue is pressed. The _y position of allBalls[0] seems to decrease by 2
+    from iteration to iteration. The _id never changes, it always remains at 0.
+
+Q2. How do the values of the member variables of the stuck ball change from iteration to iteration? Contrast this to your answer to the previous question.
+A2. My debugger was not working properly since it was not stopping on each iteration of _id == 8,
+    it only stopped on the first iteration. I'm assuming that since the ball was stuck on the
+    bottom horizontal boundary, the y-values would hop back and forth within a certain small
+    range of numbers near the bottom of the window. In the meanwhile, x-values would slowly
+    still change as the ball moves across the lower boundary.
+
+Q3. After forcing the stuck ball to position (0, 0), does the ball move normally from there or does it stay stuck?
+A3. The ball moves normally after being moved to (0,0). The x position increases by 2 each
+    iteration and the y-position increases by 5.
+
+Q4. On your system, what is the observed consequence of these memory errors:
+- access an index outside the allocated array bounds?
+- delete same memory twice?
+- access memory after it has been deleted?
+A4. 1. When trying to dereference a nullpointer address, the program crashes. In the debugger,
+    the taskList shows 0x0 since it is a null value. The popup stating that the crash was due to a
+    Segmentation fault shows up.
+    2. When trying to access an index outside the allocated array bounds, the program crashes.
+    No odd symptoms are shown on the debugger frame.
+    3. When trying to delete the same memory twice, the program crashes. The symptoms in the
+    debugger are very subtle, the memory address on the screen just turns gray when it is deleted
+    the first time and stays gray even when it is deleted again. No error or red flag of any sort
+    pops up until the program crases (outside of the debugger).
+    4. When trying to access memory after it has been deleted, the test passed and the program
+    did not crash. This happened because although the memory was "deleted", the garbage values
+    from the program are still contained in the actual memory location. Therefore, the test
+    still passed since that memory location still contained the expected value ignoring the fact
+    that it was now a garbage value.
+
+PQArray
+-------
+Q5. There are extensive comments in both the interface (`pqarray.h`) and implementation (`pqarray.cpp`). Explain how and why the comments in the interface differ from those in the implementation. Consider both the content and audience for the documentation.
+A5. The comments in the header file are more abstracted and general than the comments in the implementation.
+    The header file includes information about the Big-O runtime of a function and the basic overview of what
+    a function does. On the other hand, the implementation file comments go into great depth and explain not only
+    what a function does, but also how it works and basically give the psuedocode of the function. The header file
+    is mainly going to be viewed by people who are using the PQArray while not worrying about internal components
+    of how it works, while the implementation file is meant to be viewed by those who are working on the PQArray class
+    and would have to worry about more intricate details on how and why each function operates the way it does.
+
+Q6. The class declares member variables `_numAllocated` and `_numFilled`. What is the difference between these two counts and why are both needed?
+A6. Both varaibles are needed because they both display different aspects of "size" within the array.
+    _numAllocated shows the number of data slots that are currently allocated (reserved for) the array to fill them.
+    _numFilled represents the number of actual data slots within the RAM that are filled by the array at a given
+    moment.
+
+Q7. Although code within the body of a member function can directly access the object's member variables, the implementer may instead choose to call public member functions to get information about the object. For example, note how the operations `isEmpty()` and `peek()` intentionally call `size()` instead of using `_numFilled` or how `dequeue()` calls `peek()` to retrieve the frontmost element. Why might be this be considered a better design?
+A7. It might make a better design to use public member functions to get information about an object since it is
+    cleaner and more efficient in code to use functions that have already been created rather than rewriting the
+    same code.
+
+Q8. Give the results from your time trials and explain how they support your prediction for the Big-O runtimes of  `enqueue` and `dequeue`.
+A8. The enqueue() function runs in O(n). The dequeue() function runs in O(1). This can be seen in the timed trial data below:
+    All times are in seconds.
+
+       n    |  dequeue() time  | enqueue() time
+     -------|------------------|---------------
+     5000   | 0.0              | 0.101
+     10000  | 0.0              | 0.397
+     20000  | 0.0              | 1.496
+     40000  | 0.0              | 6.038
+     80000  | 0.001            | 24.624
+
+     Since the times for dequeue() consistently stay very close to 0 seconds, this shows that dequeue has an O(1) runtime.
+     The runtime for dequeue() does not depend on the size or number of elements in the PQArray. On the other hand,
+     enqueue() has a runtime that seems to double as the value of n doubles. This is a consistent O(n) runtime.
+     Since this is a linear increase in time along with the value of n, the Big-O of enqueue() is O(n).
+     Note: The table above shows O(n^2) runtime since the fillQueue() function runs in O(n) runtime and runs through the
+     enqueue function for each interation making the final result O(n*n) = O(n^2).
+
+PQ Client
+---------
+Q9. Based on the Big O of `enqueue`/`dequeue`, what do you expect for the Big O of `pqSort` if using a `PQArray`? Run some timing trials to confirm your prediction, and include that data in your answer.
+A9. I predict that the Big-O of the pqSort will be O(n^2). This is because enqueue has a Big-O of O(n), and
+    a for loop calls enqueue for each n element in the vector that is being sorted. Therefore, pqSort has a
+    Big-O runtime of O(n^2). The time seems to quadruple every time n doubles, supporting the conclusion that the runtime is O(n^2).
+    Here is the time trial data:
+
+      n    |  pqSort time (seconds)
+    -------|--------------------------
+    10000  |  0.394
+    20000  |  1.53
+    40000  |  6.024
+    80000  |  25.119
+    160000 |  98.393
+
+Q10. Based on the Big O of `enqueue`/`dequeue`, what do you expect for the Big O of `topK` in terms of `k` and `n` if using a `PQArray`? Run some timing trials to confirm your prediction, and include that data in your answer.
+A10. I expect the Big-O for topK in terms of n to be O(n). The first k elements within topK are sorted
+     and added into the vector, and all following elements are only added and sorted through a loop
+     if they are larger than the smallest value in the vector. Therefore, the worst case scenario
+     would be O(n). In terms of k, the Big-O would be O(log(n)) since it would grow very slowly,
+     having a slightly larger k but the same size n would not change runtime much. Here are the results of the timed trials:
+
+          n     |  topK time (seconds)    |  k
+        --------|-------------------------|------
+        200000  |  0.482                  |  10
+        400000  |  0.973                  |  10
+        800000  |  2.085                  |  10
+        1600000 |  4.293                  |  10
+
+        n       |  topK time (seconds)    |  k
+        --------|-------------------------|------
+        200000  |  0.487                  |  100
+        200000  |  0.492                  |  200
+        200000  |  0.508                  |  400
+        200000  |  0.572                  |  800
+
+        As shown above, the time nearly doubles every time n doubles while k stays consisntent, showing a linear pattern meaning
+        that the Big-O is O(n). In the next table, the time stays grows very slowly every time k doubles and n stays the same,
+        showing an O(log(k)) runtime. Overall, the topK function runs in O(nlog(k)) runtime.
+
+PQHeap
+------
+Q11. Start with an empty binary heap and enqueue the nine `DataPoint`s in the order shown below and show the result. You only need to show the final heap, not intermediate steps. Draw the heap as tree-like diagram with root element on top, its two children below, and so on. Yes, we know that we're asking you to draw pictures in a text file (we love the [AsciiFlow](http://asciiflow.com/) tool for "drawing" in text).
+A11.
+                          {"T",1}
+                             │
+                 {"B",3}─────┴───{"G",2}
+                │                    │
+        {"S",6}─┴─{"A",5}    {"V",9}─┴─{"R",4}
+            │
+    {"O",8}─┴─{"K",7}
+
+
+Q12. Make two calls to `dequeue` on the above binary heap and draw the updated result.
+A12.
+                    {"B",3}
+                       │
+           {"A",5}─────┴───{"R",4}
+            │                    │
+    {"S",6}─┴─{"O",8}    {"V",9}─┴─{"K",7}
+
+
+Q13. Draw the array representation of the binary heap above. Label each element with its array index.
+A13.
+
+        0       1       2       3       4       5       6
+    ┌───────┬───────┬───────┬───────┬───────┬───────┬───────┐
+    │{"B",3}│{"A",5}│{"R",4}│{"S",6}│{"O",8}│{"V",9}│{"K",7}│
+    └───────┴───────┴───────┴───────┴───────┴───────┴───────┘
+
+
+Q14. Re-run the timing trials on `pqclient.cpp` and provide your results that confirm that `pqSort` runs in time O(NlogN) and `topK` in O(NlogK).
+A14. The pqSort function runs much faster after implementing the PQHeap. The time grows extremely slowly even when n doubles each time.
+     This supports the conclusion that pqSort runs in O(NlogN) since the time increments extremely slowly resembling growth of the log function.
+
+    The topK runtime would show linear growth by doubling each time n doubled while the value of k stayed the same from one trial to the next.
+    This shows that topK's relation to n can be represented by O(n). When the value of n stayed constant while k doubled, the time very
+    slowly increased showing an O(logk) runtime. Putting these together, the runtime of topK is O(NlogK).
+
+
+           n    |  pqSort time (seconds)
+         -------|--------------------------
+         10000  |  0.001
+         20000  |  0.003
+         40000  |  0.003
+         80000  |  0.004
+
+          n     |  topK time (seconds)    |  k
+        --------|-------------------------|------
+        200000  |  0.488                  |  10
+        400000  |  0.961                  |  10
+        800000  |  1.932                  |  10
+        1600000 |  3.885                  |  10
+
+        n       |  topK time (seconds)    |  k
+        --------|-------------------------|------
+        200000  |  0.490                  |  100
+        200000  |  0.492                  |  200
+        200000  |  0.512                  |  400
+        200000  |  0.563                  |  800
+
+
+Embedded Ethics
+---------------
+Q15. Consider the differences between this three-bin priority queue and the priority queue you implemented on your assignment. Which would be more efficient to insert elements into and why? More generally, what are the benefits and disadvantages of using the three-bin priority queue vs. a regular priority queue?
+A15. It would be more efficient to insert elements into the PQHeap than a three-bin priority queue. The PQHeap can enqueue() in O(log n) which is more efficient compared
+     to inserting into 3 ordinary priority queues which take O(n) time. This makes the binary heap priority queue more efficient. The three-bin priority queue would take
+     more code to write since it needs to point to each subsequent lower priority section after the top section is empty (all dequeued). An advantage of the three-bin
+     design is that after each dequeue, there would be no new sorting to do since all elements in the ordinary priority queue were sorted ahead of time. On the other hand,
+     the PQHeap needs to (somewhat) resort the heap after each enqueue and dequeue. The PQHeap is more efficient in general since it would take less runtime and less code to
+     write. A three-bin priority queue has the advantage of already getting sorted as elements are placed in each bin compared to one giant bin in a traditional priority queue,
+     which needs to have all elements in the bin sorted relative to the other elements.
+
+Q16. Describe a real-world system where a three-bin priority queue could be used. What factors would you use to distinguish between a low vs. medium vs. high priority element? What limitations might you need to consider when using a three-bin priority queue to represent this system?
+A16. A three-bin priority queue can be used at amusement park rides. Amusement park guests with the no line pass would get the first priority to go on rides.
+     Guests with a yearly membership would get the medium importance bin. Lastly, guests with a day pass would get the bin of least importance. It is important
+     to recognize that these three bins are not going to be equal in size. The majority of guests will have a day pass and go to bin three while very few
+     would be in the first and second bins. We should consider the fairness of the line pass and priveledges for guests in the first and second bins.
+     Families who could only afford to pay for the day pass would not get as much out of it since they spend a much larger portion of time waiting in lines,
+     while the second and first bins can go on much more rides due to the lack of wait time. There should also be a limitation on how many line passes should
+     be available. If too many were available, then all guests would end up in the first bin and have uneven distribution, making the "no-line" pass have a long
+     wait just like the regular day pass.
+
+Q17. Different admissions departments consider different factors and convert admissions criteria to numbers in different ways. Regardless of what specific factors are considered, should an admissions department use a purely numerical ranking system for applicants? Why or why not?
+     An admissions department should not purely rely on numerical descriptions of candidates when deciding on admissions. Numbers do reveal the strengths and capabilites of candidates in paricular
+     fields, but the admissions team would lack getting to know each candidate's morals and values if they solely relied on numbers. Whether its for a job or applying to college, admissions teams
+     should factor in the personality, experiences, and morals of their candidates rather than deciding purely from numbers. It would also be much easier to cheat the system by providing fake numbers
+     if that was the only criteria for choosing applicants.
+
+If yes, discuss what factors you think would be best to include when calculating numerical rankings and why those factors are well-represented as numbers. If not, discuss what factors you think should be considered in college admissions that would be difficult to represent as a numerical score. There are no right or wrong answers here – we're genuinely interested in your thoughts!
+A17. Factors such as the morals and experiences of an individual should be considered by college admissions officers. Numbers can show good work ethic, but hearing the stories and background experiences of an indvidual
+     shine through their essays will give the college admissions officers better insight on the individual's morals and values. Considering an applicant's background will show their personal struggles that may or may not be
+     reflected in the numerical transcript grades and school performance. In summary, the true story and personality of an individual will be shown through essays rather than solely numbers representing performance.
+
+Q18. Describe a real-world system that requires ranking but in which classification with a single number misses important context (i.e. a priority queue might not be the best way to store the objects being ranked). Make sure to use an example that hasn't already been discussed in lecture or in this assignment.
+A18. High school class ranks are a numerical ranking system than can be implemented by a priority queue. Although they are still readily used by many high schools, these ranks lack important context about students'
+     performance and lives such as, what activities did each student have other than academics which they devoted time to? Did the student have personal or family struggles that they still persevered through academically?
+     How much outside help and opportunity did the student have? Did they have a private tutor or lack of access to needed technology? All of these factors are ignored by a typical numerical class rank, but they are all
+     essential to determining how hard a student had worked relative to other students.
+
+Q19. Consider the PQueue class you just implemented. What would you change about the public interface to allow the hospital to dynamically update priorities in order to determine which patient is the best match for an organ? For any methods that you add, briefly describe when they would be used by the client and how they might be implemented privately. Note: Your design does not have to be the fastest or most efficient.
+A19. I would add a few helper functions which essentially change the structure of the Priority Queue. I would add a string BloodType to the struct, which will contain the blood type of a patient and would be used for
+     confirming that blood types match in a helper function. I would add some helper functions that determine if a patient's blood type and donor's blood type match (not always the same, for example O matches to multiple blood types).
+     I can implement this by storing a map of each blood type to its compatible types. When the function is called with a donor's blood type,
+     the function searches to quickly find the patient with one of the matching blood types in the highest priority to get the organ.
+     I would change how the numerical priority of a patient is calculated, for example a patient who is struggling to survive on Dialysis would be ranked more urgently than a patient who has one fully functioning kidney.
+     As organ donors come in, the priority queue would match them to the highest priority patient who can take an organ of the donor's blood type.
